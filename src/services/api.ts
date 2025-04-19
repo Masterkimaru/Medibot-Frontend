@@ -1,7 +1,7 @@
 // src/services/api.ts
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // or your deployed Flask URL
+const API_BASE_URL = 'https://medical-bot-4hjq.onrender.com'; // or your deployed Flask URL
 
 const api = axios.create({
   baseURL: API_BASE_URL,
