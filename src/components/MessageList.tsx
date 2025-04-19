@@ -27,14 +27,10 @@ const markdownComponents = {
     <h4 className="text-md font-medium mt-3 mb-1 text-gray-700" {...props} />
   ),
   ul: ({ node, ...props }: any) => (
-    <ul className={`list-disc ml-6 mb-4 space-y-2 p-4 rounded-lg ${
-      props.children?.toString().includes('Danger') ? 'bg-red-50' : 'bg-[#f8faf9]'
-    }`} {...props} />
+    <ul className="list-disc ml-6 mb-4 space-y-2 p-4 rounded-lg bg-[#f8faf9]" {...props} />
   ),
   ol: ({ node, ...props }: any) => (
-    <ol className={`list-decimal ml-6 mb-4 space-y-2 p-4 rounded-lg ${
-      props.children?.toString().includes('Critical') ? 'bg-red-50' : 'bg-[#f8faf9]'
-    }`} {...props} />
+    <ol className="list-decimal ml-6 mb-4 space-y-2 p-4 rounded-lg bg-[#f8faf9]" {...props} />
   ),
   li: ({ node, ...props }: any) => (
     <li className="pl-2 text-gray-700 leading-relaxed" {...props} />
@@ -46,11 +42,10 @@ const markdownComponents = {
     <em className="italic text-gray-700" {...props} />
   ),
   p: ({ node, ...props }: any) => {
-    // Check if paragraph contains a YouTube URL
     const text = props.children?.toString() || '';
     const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = text.match(youtubeRegex);
-    
+
     if (match) {
       return (
         <div className="my-4">
@@ -62,26 +57,19 @@ const markdownComponents = {
               controls
               config={{
                 youtube: {
-                  playerVars: {
-                    modestbranding: 1,
-                    rel: 0
-                  }
+                  playerVars: { modestbranding: 1, rel: 0 }
                 }
               }}
             />
           </div>
-          <p className="mt-2 text-gray-500 text-sm">
-            Related instructional video
-          </p>
+          <p className="mt-2 text-gray-500 text-sm">Related instructional video</p>
         </div>
       );
     }
     return <p className="mb-4 text-gray-700 leading-normal" {...props} />;
   },
   blockquote: ({ node, ...props }: any) => (
-    <blockquote className={`border-l-4 pl-4 py-3 pr-2 rounded-r my-4 text-sm ${
-      props.children?.toString().includes('Disclaimer') ? 'bg-red-100 border-red-500' : 'bg-[#e8f5e9] border-[#81c784]'
-    }`} {...props} />
+    <blockquote className="border-l-4 pl-4 py-3 pr-2 rounded-r my-4 text-sm bg-[#e8f5e9] border-[#81c784]" {...props} />
   ),
   a: ({ node, ...props }: any) => (
     <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
@@ -92,6 +80,34 @@ const markdownComponents = {
   code: ({ node, ...props }: any) => (
     <code className="bg-[#ffecb3] px-2 py-1 rounded text-sm" {...props} />
   )
+};
+
+// 🧠 New: Mental Health Text Processor
+const processMentalHealthText = (text: string) => {
+  let formatted = '## MENTAL HEALTH ASSESSMENT\n\n';
+
+  const [questionsPart, copingPart] = text.split(/Coping Strategies/i);
+
+  if (questionsPart) {
+    formatted += '### PHQ-2 Screening\n\n';
+    formatted += questionsPart
+      .trim()
+      .replace(/\n?\d\.\s+/g, '\n1. ')
+      .replace(/1\.\s+Over/g, '\n1. Over')
+      .replace(/2\.\s+/g, '\n2. ');
+  }
+
+  if (copingPart) {
+    formatted += '\n\n### Coping Strategies\n\n';
+    formatted += copingPart
+      .trim()
+      .replace(/\n?\d\.\s+/g, '\n1. ')
+      .replace(/2\.\s+/g, '\n2. ')
+      .replace(/3\.\s+/g, '\n3. ')
+      .replace(/4\.\s+/g, '\n4. ');
+  }
+
+  return formatted.trim();
 };
 
 const formatNumberedList = (text: string, prefix: string) => {
@@ -112,85 +128,73 @@ const processEmergencyText = (text: string) => {
     const section = sections[i].trim();
     if (!section) continue;
 
-    switch(section) {
+    switch (section) {
       case 'Critical Actions':
       case 'Possible Emergency Causes':
         processedText += `### ${section}\n\n`;
         processedText += formatNumberedList(sections[++i].trim(), `### ${section}`);
         break;
-      
       case 'Danger Signs':
       case 'Do Not':
       case 'When to Call':
         processedText += `### ${section}\n\n`;
-        processedText += sections[++i].trim()
-          .replace(/-\s*(.*)/g, '- $1\n')
-          .replace(/\n{3,}/g, '\n\n');
+        processedText += sections[++i].trim().replace(/-\s*(.*)/g, '- $1\n');
         break;
-        
       case 'Disclaimer:':
         processedText += '\n---\n\n> **Disclaimer:** ';
         processedText += sections[++i].trim();
         break;
-        
       default:
         if (i === 0) processedText += section;
         break;
     }
   }
 
-  return processedText
-    .replace(/(🚑|🩹|⏱️|🤔|✋|🤜)/g, ' **$1** ')
-    .trim();
+  return processedText.replace(/(🚑|🩹|⏱️|🤔|✋|🤜)/g, ' **$1** ').trim();
 };
 
 const processMedicalText = (text: string) => {
   const sections = text.split(/(Follow-up Questions|Possible Conditions|Recommended Actions|Medication & Treatment|Disclaimer:)/g);
   let processedText = '';
-  
+
   for (let i = 0; i < sections.length; i++) {
     const section = sections[i].trim();
     if (!section) continue;
 
-    if (section.match(/Follow-up Questions/i)) {
+    if (/Follow-up Questions/i.test(section)) {
       processedText += '\n### Follow-up Questions\n\n';
       processedText += formatNumberedList(sections[++i].trim(), '### Follow-up Questions');
-    } 
-    else if (section.match(/Possible Conditions/i)) {
+    } else if (/Possible Conditions/i.test(section)) {
       processedText += '\n---\n\n### Possible Conditions\n\n';
       processedText += formatNumberedList(sections[++i].trim(), '### Possible Conditions')
         .replace(/(\d\.)(.*?)(—)/g, '$1 **$2**$3');
-    }
-    else if (section.match(/Recommended Actions/i)) {
+    } else if (/Recommended Actions/i.test(section)) {
       processedText += '\n### Recommended Actions\n\n';
       processedText += formatNumberedList(sections[++i].trim(), '### Recommended Actions');
-    }
-    else if (section.match(/Medication & Treatment/i)) {
+    } else if (/Medication & Treatment/i.test(section)) {
       processedText += '\n---\n\n### Medication & Treatment\n\n';
       processedText += formatNumberedList(sections[++i].trim(), '### Medication & Treatment')
         .replace(/(\d\.)(.*?)(—)/g, '$1 **$2**$3')
         .replace(/ as prescribed/g, '*as prescribed*');
-    }
-    else if (section.match(/Disclaimer:/i)) {
-      processedText += '\n---\n\n> Disclaimer:';
-      processedText += ` ${sections[++i].trim()}`;
-    }
-    else if (section.match(/MEDICAL ASSESSMENT:/i)) {
+    } else if (/Disclaimer:/i.test(section)) {
+      processedText += '\n---\n\n> Disclaimer: ';
+      processedText += sections[++i].trim();
+    } else if (/MEDICAL ASSESSMENT:/i.test(section)) {
       processedText += `## ${section}\n\n`;
-    }
-    else if (i === 0) {
+    } else if (i === 0) {
       processedText += section;
     }
   }
 
-  return processedText
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return processedText.replace(/\n{3,}/g, '\n\n').trim();
 };
 
 const processBotResponse = (text: string) => {
   if (text.startsWith('EMERGENCY RESPONSE:')) {
     return processEmergencyText(text);
+  }
+  if (text.includes('MENTAL HEALTH ASSESSMENT') || text.includes('PHQ-2')) {
+    return processMentalHealthText(text);
   }
   return processMedicalText(text);
 };
@@ -235,8 +239,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
             p-4 rounded-2xl
             ${msg.sender === 'user'
               ? 'bg-blue-600 text-white self-end'
-              : 'bg-white self-start border border-[#e8f5e9] shadow-sm'
-            }
+              : 'bg-white self-start border border-[#e8f5e9] shadow-sm'}
           `}
           style={{
             borderTopRightRadius: msg.sender === 'user' ? '0.5rem' : '2rem',
@@ -260,11 +263,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
               title="Toggle speech"
               aria-label="Text-to-speech"
             >
-              {speakingId === msg.id ? (
-                <FaVolumeMute size={16} />
-              ) : (
-                <FaVolumeUp size={16} />
-              )}
+              {speakingId === msg.id ? <FaVolumeMute size={16} /> : <FaVolumeUp size={16} />}
             </button>
           )}
         </div>
